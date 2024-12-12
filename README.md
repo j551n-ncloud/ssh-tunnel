@@ -1,93 +1,79 @@
-# Ssh Tunnel
 
+### `ssh_tunnel.sh` README
 
+# SSH Tunnel Setup for iDRAC Access
 
-## Getting started
+This script establishes an SSH tunnel from your local machine to an iDRAC interface via a jump host. Once the tunnel is set up, you can access the iDRAC web interface locally through your browser.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Prerequisites
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- **SSH Access**: You must have SSH access to the jump host (`odcf-admin01.dkfz-heidelberg.de`) and the appropriate credentials (username and password or SSH key).
+- **iDRAC FQDN**: You need the Fully Qualified Domain Name (FQDN) of the iDRAC server to establish the tunnel.
 
-## Add your files
+## Setup Instructions
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+1. **Clone or Download the Script**
 
+   Download the `idrac_tunnel.sh` script to your local machine. You can copy the content from the script above or download it from your source.
+
+2. **Make the Script Executable**
+
+   After downloading or saving the script, navigate to the directory where the script is located and run the following command to make it executable:
+   
+   ```bash
+   chmod +x idrac_tunnel.sh
+   ```
+
+3. **Run the Script**
+
+   Run the script with the following command:
+   
+   ```bash
+   ./idrac_tunnel.sh
+   ```
+
+4. **Enter iDRAC FQDN**
+
+   When prompted, **enter the FQDN** (e.g., `idrac.example.com`) of the iDRAC server. This will establish the SSH tunnel to the specified iDRAC interface through the jump host.
+
+   ```
+   Enter the FQDN of the iDRAC server: idrac.example.com
+   ```
+
+5. **Access iDRAC**
+
+   After the tunnel is established, you can access the iDRAC web interface by navigating to the following URL in your web browser:
+   
+   ```
+   https://localhost:8443
+   ```
+
+   The local port `8443` will forward your browser traffic to the remote iDRAC server over port `443`.
+
+## Example Usage
+
+```bash
+Enter the FQDN of the iDRAC server: idrac.example.com
+Setting up SSH tunnel to iDRAC (idrac.example.com) via jump host...
+Tunnel established! Access iDRAC at https://localhost:8443
 ```
-cd existing_repo
-git remote add origin https://gitlab.j551n.com/j551n/ssh-tunnel.git
-git branch -M main
-git push -uf origin main
-```
 
-## Integrate with your tools
+## Notes
 
-- [ ] [Set up project integrations](https://gitlab.j551n.com/j551n/ssh-tunnel/-/settings/integrations)
+- **Local Port**: The script uses **local port `8443`** for the tunnel. If this port is already in use, you can modify the `LOCAL_PORT` variable in the script.
+  
+- **Jump Host**: The script connects via the jump host `odcf-admin01.dkfz-heidelberg.de`. Modify the `JUMP_HOST` variable if the jump host address is different.
 
-## Collaborate with your team
+- **Access iDRAC via Browser**: After the tunnel is established, use `localhost:8443` to connect to the iDRAC interface.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+## Troubleshooting
 
-## Test and Deploy
+- **SSH Connection Issues**: Ensure that your SSH credentials and network access to the jump host are correct.
+  
+- **Port Conflicts**: If `8443` is already in use, you can change it by updating the `LOCAL_PORT` in the script.
+  
+- **Firewall/Network Configuration**: Ensure that the iDRAC FQDN is accessible from the jump host and that no firewalls are blocking port `443` on the iDRAC.
 
-Use the built-in continuous integration in GitLab.
+## Conclusion
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+This SSH tunneling script provides an easy and secure way to access the iDRAC web interface from your local machine via a jump host. It simplifies the process of managing remote iDRAC servers behind firewalls or private networks.
