@@ -1,79 +1,60 @@
+# SSH Tunnel Management for iDRAC Access
 
-
-
-# SSH Tunnel Setup for iDRAC Access
-
-This script establishes an SSH tunnel from your local machine to an iDRAC interface via a jump host. Once the tunnel is set up, you can access the iDRAC web interface locally through your browser.
+This repository contains two shell scripts designed to help you create and manage SSH tunnels for accessing an iDRAC server through a jump host. The scripts are intended to establish secure SSH tunnels, provide access to the iDRAC web interface, and allow you to manage active tunnels on your local machine.
 
 ## Prerequisites
 
-- **SSH Access**: You must have SSH access to the jump host (`odcf-admin01.dkfz-heidelberg.de`) and the appropriate credentials (username and password or SSH key).
-- **iDRAC FQDN**: You need the Fully Qualified Domain Name (FQDN) of the iDRAC server to establish the tunnel.
+Before using these scripts, ensure you have the following:
 
-## Setup Instructions
+- **SSH access to the jump host** (via a valid SSH key or password).
+- **iDRAC credentials** (Fully Qualified Domain Name (FQDN) and access credentials for the iDRAC server).
+- **The `lsof` command** installed on your system (used for checking active ports).
 
-1. **Clone or Download the Script**
+## Script Overview
 
-   Download the `idrac_tunnel.sh` script to your local machine. You can copy the content from the script above or download it from your source.
+### 1. **Create SSH Tunnel for iDRAC Access**
 
-2. **Make the Script Executable**
+This script allows you to create an SSH tunnel through a jump host to access an iDRAC server. It forwards traffic from a local port on your machine to the iDRAC port, providing a secure connection to the iDRAC interface.
 
-   After downloading or saving the script, navigate to the directory where the script is located and run the following command to make it executable:
-   
-   ```bash
-   chmod +x idrac_tunnel.sh
-   ```
+**Functionality:**
+- Prompts you to enter the Fully Qualified Domain Name (FQDN) of the iDRAC server.
+- Automatically detects the next available local port on your machine to establish the tunnel.
+- Provides a URL (`https://localhost:<local_port>`) to access the iDRAC interface securely through the tunnel.
 
-3. **Run the Script**
+### 2. **List and Close Active SSH Tunnels**
 
-   Run the script with the following command:
-   
-   ```bash
-   ./idrac_tunnel.sh
-   ```
+This script lists all active SSH tunnels on your local machine, allowing you to identify and close any open tunnels. It is useful for managing and maintaining SSH connections, especially when there are multiple tunnels in use.
 
-4. **Enter iDRAC FQDN**
+**Functionality:**
+- Scans for active SSH tunnels starting from a specified base port.
+- Lists all active tunnels and their corresponding ports.
+- Prompts you to select a specific tunnel to close or allows you to close all active tunnels at once.
 
-   When prompted, **enter the FQDN** (e.g., `idrac.example.com`) of the iDRAC server. This will establish the SSH tunnel to the specified iDRAC interface through the jump host.
+## How to Use
 
-   ```
-   Enter the FQDN of the iDRAC server: idrac.example.com
-   ```
+### Step 1: Create the SSH Tunnel
 
-5. **Access iDRAC**
+To create an SSH tunnel to access the iDRAC server, follow these steps:
 
-   After the tunnel is established, you can access the iDRAC web interface by navigating to the following URL in your web browser:
-   
-   ```
-   https://localhost:8443
-   ```
+1. Run the script designed for tunnel creation.
+2. Enter the **FQDN of the iDRAC server** when prompted.
+3. The script will automatically find an available local port and establish the tunnel.
+4. After successful creation, you can access the iDRAC interface by navigating to `https://localhost:<local_port>`.
 
-   The local port `8443` will forward your browser traffic to the remote iDRAC server over port `443`.
+### Step 2: List and Close Active SSH Tunnels
 
-## Example Usage
+To manage active SSH tunnels on your local machine, follow these steps:
 
-```bash
-Enter the FQDN of the iDRAC server: idrac.example.com
-Setting up SSH tunnel to iDRAC (idrac.example.com) via jump host...
-Tunnel established! Access iDRAC at https://localhost:8443
-```
+1. Run the script that lists and closes SSH tunnels.
+2. The script will search for active tunnels and display a list of ports in use.
+3. Choose to close a specific tunnel by entering the associated port number or type `all` to close all active tunnels.
 
 ## Notes
 
-- **Local Port**: The script uses **local port `8443`** for the tunnel. If this port is already in use, you can modify the `LOCAL_PORT` variable in the script.
-  
-- **Jump Host**: The script connects via the jump host `odcf-admin01.dkfz-heidelberg.de`. Modify the `JUMP_HOST` variable if the jump host address is different.
+- The SSH tunnel forwards traffic from a local port (on your laptop) to the iDRAC server's HTTPS port (443).
+- Ensure that SSH tunneling is enabled on the jump host and that your firewall/security settings allow such connections.
+- The second script is useful for managing multiple active tunnels on your local machine.
 
-- **Access iDRAC via Browser**: After the tunnel is established, use `localhost:8443` to connect to the iDRAC interface.
+## License
 
-## Troubleshooting
-
-- **SSH Connection Issues**: Ensure that your SSH credentials and network access to the jump host are correct.
-  
-- **Port Conflicts**: If `8443` is already in use, you can change it by updating the `LOCAL_PORT` in the script.
-  
-- **Firewall/Network Configuration**: Ensure that the iDRAC FQDN is accessible from the jump host and that no firewalls are blocking port `443` on the iDRAC.
-
-## Conclusion
-
-This SSH tunneling script provides an easy and secure way to access the iDRAC web interface from your local machine via a jump host. It simplifies the process of managing remote iDRAC servers behind firewalls or private networks.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

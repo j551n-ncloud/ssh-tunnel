@@ -4,13 +4,21 @@
 read -p "Enter the FQDN of the iDRAC server: " IDRAC_FQDN
 
 # Variables
-LOCAL_PORT=8443             # Local port on your laptop
-JUMP_HOST="odcf-admin01.dkfz-heidelberg.de" # Jump host hostname
-USER="j551n"            # Your SSH username on the jump host
+BASE_PORT=8443                              # Base local port on your laptop
+JUMP_HOST="jumphost"   # Jump host hostname
+USER="username"                                  # Your SSH username on the jump host
 
-# SSH Tunnel Command
-echo "Setting up SSH tunnel to iDRAC (${IDRAC_FQDN}) via jump host..."
-ssh -L ${LOCAL_PORT}:${IDRAC_FQDN}:443 ${USER}@${JUMP_HOST} -N
+# Find an available port
+LOCAL_PORT=$BASE_PORT
+while lsof -i :$LOCAL_PORT >/dev/null 2>&1; do
+    ((LOCAL_PORT++))
+done
 
-# Notify user
+# Notify the user that the tunnel is established
 echo "Tunnel established! Access iDRAC at https://localhost:${LOCAL_PORT}"
+
+# Run the SSH command with -f and -N options (simplified)
+# -f forces SSH to go to the background just before command execution, but still prompts for the password
+# -N tells SSH not to execute any command on the remote machine (only sets up the tunnel)
+ssh -f -N -L ${LOCAL_PORT}:${IDRAC_FQDN}:443 ${USER}@${JUMP_HOST}
+
