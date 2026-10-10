@@ -69,7 +69,11 @@ It keeps its configuration in `~/.ssh-tunnel-config`, a log in
 ## Tips
 
 - With `ProxyJump` in `~/.ssh/config` you can reach the targets' SSH as well:
-  `Host idrac-* \n ProxyJump jump.example.com`.
+
+  ```
+  Host idrac-*
+      ProxyJump jump.example.com
+  ```
 - The browser will warn about the target's certificate, because it was
   issued for the target's name, not `localhost`.
 
