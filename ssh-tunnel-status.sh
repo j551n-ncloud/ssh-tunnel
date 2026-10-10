@@ -12,7 +12,7 @@ list_and_close_tunnels() {
     active_ports=()
     for port in $(seq "$BASE_PORT" "$END_PORT"); do
         # only ssh processes listening on the port, never other programs that happen to use it
-        PID=$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -c ssh -t 2>/dev/null | head -1)
+        PID=$(lsof -a -nP -iTCP:"$port" -sTCP:LISTEN -c ssh -t 2>/dev/null | head -1)
         if [ -n "$PID" ]; then
             active_ports+=($port)
         fi
@@ -32,13 +32,13 @@ list_and_close_tunnels() {
 
     if [ "$selected_port" == "all" ]; then
         for port in "${active_ports[@]}"; do
-            PID=$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -c ssh -t 2>/dev/null | head -1)
+            PID=$(lsof -a -nP -iTCP:"$port" -sTCP:LISTEN -c ssh -t 2>/dev/null | head -1)
             echo "Closing tunnel on port $port (PID: $PID)..."
             kill "$PID"
         done
         echo "All detected SSH tunnels closed."
     else
-        PID=$(lsof -nP -iTCP:"$selected_port" -sTCP:LISTEN -c ssh -t 2>/dev/null | head -1)
+        PID=$(lsof -a -nP -iTCP:"$selected_port" -sTCP:LISTEN -c ssh -t 2>/dev/null | head -1)
         if [ -n "$PID" ]; then
             echo "Closing tunnel on port $selected_port (PID: $PID)..."
             kill "$PID"

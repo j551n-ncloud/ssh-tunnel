@@ -34,6 +34,7 @@ readonly NC='\033[0m'
 
 # Global variables
 declare -A TUNNEL_INFO
+declare -a ACTIVE_PORTS=()
 START_PORT=$DEFAULT_BASE_PORT
 END_PORT=8500
 
@@ -212,8 +213,8 @@ find_available_port() {
     local attempts=0
     
     while ! is_port_available "$port" && (( attempts < max_attempts )); do
-        ((port++))
-        ((attempts++))
+        port=$((port + 1))
+        attempts=$((attempts + 1))
     done
     
     if (( attempts >= max_attempts )); then
@@ -286,7 +287,7 @@ create_single_tunnel() {
         
         # Get the PID of the SSH process
         local pid
-        pid=$(pgrep -f "ssh.*-L $local_port:$target_host:$custom_target_port" | head -1)
+        pid=$({ pgrep -f "ssh.*-L $local_port:$target_host:$custom_target_port" || true; } | head -1)
         
         if [[ -n "$pid" ]]; then
             save_tunnel_state "$local_port" "$target_host" "$custom_target_port" "$pid"
@@ -339,9 +340,9 @@ create_multiple_tunnels() {
         read -r host port <<< "$(parse_target "$target")"
         
         if create_single_tunnel "$host" "$port"; then
-            ((created++))
+            created=$((created + 1))
         else
-            ((failed++))
+            failed=$((failed + 1))
         fi
         
         # Small delay between tunnel creations
@@ -377,7 +378,7 @@ create_from_batch_file() {
     local line_num=0
     
     while IFS= read -r line || [[ -n "$line" ]]; do
-        ((line_num++))
+        line_num=$((line_num + 1))
         
         # Skip empty lines and comments
         [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
@@ -447,7 +448,8 @@ create_tunnel_interactive() {
 get_tunnel_info() {
     local port="$1"
     if [[ -f "$TUNNEL_STATE_FILE" ]]; then
-        grep "^$port|" "$TUNNEL_STATE_FILE" | tail -1
+        # no match is normal (tunnel opened outside this script); grep's exit 1 must not end the run
+        { grep "^$port|" "$TUNNEL_STATE_FILE" || true; } | tail -1
     fi
 }
 
@@ -486,13 +488,17 @@ get_active_tunnels() {
         fi
     done
     
-    printf '%s\n' "${active_ports[@]}" | sort -n
-    
-    # Store in global array
+    # Fill the globals here instead of printing: callers used to run this in a
+    # $(...) subshell, which threw TUNNEL_INFO away and turned "no tunnels"
+    # into one empty port.
     TUNNEL_INFO=()
-    for port in "${active_ports[@]}"; do
-        TUNNEL_INFO["$port"]="${tunnel_info["$port"]}"
-    done
+    ACTIVE_PORTS=()
+    if [[ ${#active_ports[@]} -gt 0 ]]; then
+        mapfile -t ACTIVE_PORTS < <(printf '%s\n' "${active_ports[@]}" | sort -n)
+        for port in "${active_ports[@]}"; do
+            TUNNEL_INFO["$port"]="${tunnel_info["$port"]}"
+        done
+    fi
 }
 
 # Display tunnel status
@@ -500,8 +506,8 @@ show_tunnel_status() {
     header "=== SSH Tunnel Status ==="
     echo
     
-    local active_ports
-    mapfile -t active_ports < <(get_active_tunnels)
+    get_active_tunnels
+    local active_ports=("${ACTIVE_PORTS[@]}")
     
     if [[ ${#active_ports[@]} -eq 0 ]]; then
         info "No active SSH tunnels found"
@@ -573,7 +579,8 @@ close_tunnel() {
         
         # Remove from state file
         if [[ -f "$TUNNEL_STATE_FILE" ]]; then
-            sed -i "/^$target_port|/d" "$TUNNEL_STATE_FILE"
+            grep -v "^$target_port|" "$TUNNEL_STATE_FILE" > "$TUNNEL_STATE_FILE.tmp" || true
+            mv "$TUNNEL_STATE_FILE.tmp" "$TUNNEL_STATE_FILE"
         fi
     else
         error "Failed to close tunnel on port $target_port"
@@ -583,8 +590,8 @@ close_tunnel() {
 
 # Close all tunnels
 close_all_tunnels() {
-    local active_ports
-    mapfile -t active_ports < <(get_active_tunnels)
+    get_active_tunnels
+    local active_ports=("${ACTIVE_PORTS[@]}")
     
     if [[ ${#active_ports[@]} -eq 0 ]]; then
         info "No active SSH tunnels to close"
@@ -611,9 +618,9 @@ close_all_tunnels() {
     
     for port in "${active_ports[@]}"; do
         if close_tunnel "$port"; then
-            ((closed++))
+            closed=$((closed + 1))
         else
-            ((failed++))
+            failed=$((failed + 1))
         fi
     done
     
@@ -642,7 +649,7 @@ clean_stale_records() {
         if [[ -n "$pid" ]] && is_process_running "$pid"; then
             echo "$port|$target_host|$target_port|$pid|$timestamp|$jump_host" >> "$temp_file"
         else
-            ((cleaned++))
+            cleaned=$((cleaned + 1))
         fi
     done < "$TUNNEL_STATE_FILE"
     
